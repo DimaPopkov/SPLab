@@ -1,26 +1,49 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 
+import { ShieldIcon } from './icons.jsx';
+
 export default function Header() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    <header>
-        <Link to="/" onClick={closeMobileMenu}>
-        SPLab
+    <header className="site-header">
+      <div className="site-header__inner">
+        <Link to="/" className="site-header__logo" onClick={closeMenu}>
+          <span className="site-header__mark">
+            <ShieldIcon size={20} />
+          </span>
+          SPLab
         </Link>
 
-        <NavLink to="profile" end onClick={closeMobileMenu}>
-        Профиль
-        </NavLink>
+        <button
+          type="button"
+          className="site-header__burger"
+          aria-label="Открыть меню"
+          aria-expanded={isMenuOpen}
+          aria-controls="main-nav"
+          onClick={toggleMenu}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+        <nav
+          id="main-nav"
+          className={`site-header__nav${isMenuOpen ? ' is-open' : ''}`}
+        >
+          <NavLink to="/" end onClick={closeMenu}>
+            Главная
+          </NavLink>
+          <NavLink to="/profile" onClick={closeMenu}>
+            Профиль
+          </NavLink>
+        </nav>
+      </div>
     </header>
   );
 }

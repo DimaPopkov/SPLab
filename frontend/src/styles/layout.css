@@ -1,0 +1,108 @@
+/* ===== Шапка ===== */
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 12px 24px;
+}
+
+.site-header__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.site-header__logo:hover {
+  text-decoration: none;
+}
+
+.site-header__mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: #fff;
+}
+
+.site-header__nav {
+  display: flex;
+  gap: 4px;
+}
+
+.site-header__nav a {
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  border-radius: var(--radius);
+}
+
+.site-header__nav a:hover {
+  background: rgba(177, 186, 196, 0.12);
+  text-decoration: none;
+}
+
+/* NavLink сам добавляет класс active на текущей странице */
+.site-header__nav a.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.site-header__burger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: auto;
+  padding: 9px 10px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.site-header__burger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+@media (max-width: 720px) {
+  .site-header__burger {
+    display: inline-flex;
+  }
+
+  .site-header__nav {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .site-header__nav.is-open {
+    display: flex;
+  }
+}
+
+/* ===== Подвал ===== */
+.site-footer {
+  padding: 24px;
+  font-size: 13px;
+  text-align: center;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}

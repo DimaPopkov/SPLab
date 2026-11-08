@@ -1,0 +1,367 @@
+/* ===== Верхний блок ===== */
+.hero {
+  border-bottom: 1px solid var(--border);
+}
+
+.hero__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: center;
+  padding-top: 64px;
+  padding-bottom: 64px;
+}
+
+.hero__title {
+  margin-bottom: 16px;
+  font-size: 40px;
+  letter-spacing: -0.5px;
+}
+
+.hero__lead {
+  max-width: 56ch;
+  margin-bottom: 24px;
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Пример отчёта справа от заголовка */
+.report {
+  margin: 0;
+  overflow: hidden;
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(1, 4, 9, 0.6);
+}
+
+.report__bar {
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.report__body {
+  padding: 16px;
+}
+
+.report__project {
+  margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.report__list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.report__item {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.report__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+}
+
+.report__dot--ok {
+  background: var(--success);
+}
+
+.report__dot--warn {
+  background: var(--warning);
+}
+
+.report__dot--err {
+  background: var(--danger);
+}
+
+/* ===== Основная сетка: слева профиль, справа контент ===== */
+.home-layout {
+  display: grid;
+  grid-template-columns: 296px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+.home-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+#how {
+  scroll-margin-top: 16px;
+}
+
+/* ===== Карточка пользователя (макет) ===== */
+.user-card {
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.user-card__avatar {
+  display: block;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 12px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.user-card__name {
+  font-size: 20px;
+}
+
+.user-card__hint {
+  margin: 4px 0 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.user-card__section {
+  margin-top: 20px;
+  padding-top: 16px;
+  text-align: left;
+  border-top: 1px solid var(--border);
+}
+
+.user-card__section-title {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.user-card__note {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+}
+
+.stats__item {
+  display: flex;
+  flex-direction: column-reverse; /* в разметке подпись идёт первой, на экране — число */
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.stats__value {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.stats__label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.risk-bar {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.risk-bar__seg--critical {
+  background: var(--danger);
+}
+
+.risk-bar__seg--high {
+  background: var(--orange);
+}
+
+.risk-bar__seg--medium {
+  background: var(--warning);
+}
+
+.risk-bar__seg--low {
+  background: var(--success);
+}
+
+.risk-legend {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.risk-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.risk-legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.risk-legend__count {
+  margin-left: auto;
+  color: var(--text-muted);
+}
+
+/* ===== «О нас» ===== */
+.prose p {
+  max-width: 68ch;
+  margin-bottom: 12px;
+}
+
+.prose ul {
+  max-width: 68ch;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.prose li {
+  margin: 6px 0;
+}
+
+/* ===== Шаги: вертикальная линия показывает последовательность ===== */
+.steps {
+  margin: 0;
+  list-style: none;
+}
+
+.steps__item {
+  position: relative;
+  padding-left: 48px;
+}
+
+.steps__item:not(:last-child) {
+  padding-bottom: 28px;
+}
+
+.steps__item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 38px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--border);
+}
+
+.steps__num {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+.steps__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+.steps__text {
+  max-width: 68ch;
+  color: var(--text-muted);
+}
+
+/* ===== Таблица «язык — фреймворк» ===== */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.model-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: left;
+}
+
+.model-table th,
+.model-table td {
+  padding: 10px 16px;
+  vertical-align: top;
+  border-top: 1px solid var(--border);
+}
+
+.model-table th {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-muted);
+  background: var(--bg);
+}
+
+/* ===== Адаптив ===== */
+@media (max-width: 960px) {
+  .hero__inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+}
+
+@media (max-width: 860px) {
+  .home-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero__title {
+    font-size: 30px;
+  }
+
+  .hero__lead {
+    font-size: 16px;
+  }
+
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

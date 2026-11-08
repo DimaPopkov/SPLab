@@ -1,20 +1,20 @@
-import { useState } from 'react'
 import { Outlet } from 'react-router-dom';
 
 import Header from './Header.jsx';
 
-import '../styles/index.css'
+import '../styles/layout.css';
 
-function App() {
-    return (
+// Общий каркас всех страниц: шапка, содержимое текущего маршрута, подвал.
+export default function Base() {
+  return (
     <>
-        <Header />
+      <Header />
 
-        <main id="content">
-            <Outlet />
-        </ main>
+      <main id="content">
+        <Outlet />
+      </main>
+
+      <footer className="site-footer">© {new Date().getFullYear()} SPLab</footer>
     </>
-    )
+  );
 }
-
-export default App

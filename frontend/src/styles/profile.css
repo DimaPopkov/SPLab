@@ -1,60 +1,77 @@
 section#profile {
-    display: flex;
-    gap: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
 
-    max-width: 1200px;
-
-    width: 1200px;
-    height: 500px;
-
-    margin: 30px auto;
-
-    /* background: rgba(50, 50, 50, 0.2); */
+  max-width: 1280px;
+  margin: 32px auto;
+  padding: 0 24px;
 }
 
 .profile_AvatarBlock {
-    width: 20%;
-    max-width: 250px;
+  flex: 0 0 296px;
+  padding: 24px 16px;
+  text-align: center;
 
-    height: auto;
-    align-self: flex-start;
-
-    padding: 20px 0;
-
-    border-radius: 15px;
-
-    background: var(--main-background);
-    box-shadow: 0 5px 10px rgba(20, 20, 20, 0.7);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 .profile_AvatarBlock img {
-    width: 70%;
-    height: auto;
+  width: 70%;
+  height: auto;
+  border-radius: 50%;
+}
+
+.profile_AvatarBlock h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
 }
 
 .profile_AvatarBlock button {
-    width: 80%;
-    height: auto;
+  width: 80%;
+  padding: 5px 16px;
 
-    border-radius: 10px;
-    border: 0px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #fff;
 
-    font-size: 18px;
-    padding: 10px 0;
+  background: var(--primary);
+  border: 1px solid rgba(240, 246, 252, 0.1);
+  border-radius: var(--radius);
+  cursor: pointer;
 }
 
-.profile_Info{
-    display: flex;
+.profile_AvatarBlock button:hover {
+  background: var(--primary-hover);
+}
+
+.profile_Info {
+  flex: 1;
+  min-width: 0;
+  min-height: 360px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+@media (max-width: 860px) {
+  section#profile {
     flex-direction: column;
+    align-items: stretch;
+    padding: 0 16px;
+  }
 
-    justify-content: center;
-
-    width: calc(80% - 20px);
-
-    height: auto;
-
-    border-radius: 15px;
-
-    background: var(--main-background);
-    box-shadow: 0 5px 10px rgba(20, 20, 20, 0.7);
+  .profile_AvatarBlock {
+    flex-basis: auto;
+  }
 }
