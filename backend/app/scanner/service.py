@@ -11,7 +11,7 @@ SECURITY_RULES = [
     ("MEDIUM", "Отключена проверка SSL (verify=False)", r"verify\s*=\s*False"),
 ]
 
-IGNORED_FILES = ("scanner/service.py", "package-lock.json", "yarn.lock")
+IGNORED_FILES = ("scanner/service.py", "scanner\\service.py", "package-lock.json", "yarn.lock")
 
 ALLOWED_EXTENSIONS = (".py", ".js", ".jsx", ".ts", ".tsx", ".env", ".yml", ".yaml", ".json")
 
@@ -40,8 +40,10 @@ async def run_security_scan(repo_full_name: str, gh_token: str) -> list[dict]:
         files = [
             item["path"]
             for item in tree_res.json().get("tree", [])
-            if item["type"] == "blob" and item["path"].endswith(ALLOWED_EXTENSIONS)
-        ][:40]
+            if item["type"] == "blob"
+            and item["path"].endswith(ALLOWED_EXTENSIONS)
+            and not any(item["path"].endswith(ignored) for ignored in IGNORED_FILES)
+        ][:50]
 
         for file_path in files:
             raw_url = f"{raw_host}/{repo_full_name}/{default_branch}/{file_path}"
@@ -50,7 +52,12 @@ async def run_security_scan(repo_full_name: str, gh_token: str) -> list[dict]:
                 continue
 
             lines = file_res.text.splitlines()
-            for line_num, line_text in enumerate(lines, start=1):
+            for line_num, line_text in enumerate(file_res.text.splitlines(), start=1):
+                stripped = line_text.strip()
+                # Пропускаем описания правил самого сканера и комментарии
+                if stripped.startswith(("#", "//", '("CRITICAL"', '("HIGH"', '("MEDIUM"', 'r"', "r'")):
+                    continue
+
                 for severity, rule_name, pattern in SECURITY_RULES:
                     if re.search(pattern, line_text):
                         issues.append({
@@ -58,6 +65,6 @@ async def run_security_scan(repo_full_name: str, gh_token: str) -> list[dict]:
                             "line": line_num,
                             "severity": severity,
                             "rule": rule_name,
-                            "snippet": line_text.strip()[:120],
+                            "snippet": stripped[:120],
                         })
     return issues
