@@ -1,0 +1,39 @@
+# Переменные окружения и секреты
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Временные БД и хранилище данных
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+!apps/backend/app/secscan.db
+
+# Игнорируем содержимое data/ (хранилище и тяжёлые дампы)
+data/*
+!data/.gitkeep
+
+# Docker и логи инфраструктуры
+docker-compose.override.yml
+*.log
+
+# Python (общие для корня и скриптов)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# IDE и ОС
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
