@@ -3,7 +3,7 @@
 COMPOSE := docker compose
 APP_NAME := SPLab
 
-.PHONY: help up up-build down restart logs logs-backend logs-nginx ps rebuild-front rebuild-back psql clean
+.PHONY: help up up-build down restart logs logs-backend logs-nginx logs-worker ps rebuild-front rebuild-back rebuild-worker psql clean
 
 help: ## Показать список доступных команд
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -31,12 +31,18 @@ logs-backend: ## Смотреть логи только FastAPI бэкенда
 
 logs-nginx: ## Смотреть логи только Nginx
 	$(COMPOSE) logs -f --tail=100 nginx
+	
+logs-worker: ## Смотреть логи фонового воркера RabbitMQ
+	$(COMPOSE) logs -f --tail=100 worker
 
 rebuild-front: ## Пересобрать и перезапустить только frontend
 	$(COMPOSE) up -d --build --no-deps frontend
 
 rebuild-back: ## Пересобрать и перезапустить только backend
 	$(COMPOSE) up -d --build --no-deps backend
+	
+rebuild-worker: ## Пересобрать и перезапустить только worker
+	$(COMPOSE) up -d --build --no-deps worker
 
 psql: ## Открыть консоль PostgreSQL внутри контейнера
 	$(COMPOSE) exec postgres psql -U $${POSTGRES_USER:-secscan} -d $${POSTGRES_DB:-secscan_db}

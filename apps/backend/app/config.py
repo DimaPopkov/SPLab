@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     DATABASE_URL: str
+    RABBITMQ_URL: str = "amqp://guest:guest@rabbitmq:5672/"
     GITHUB_CLIENT_ID: str
     GITHUB_CLIENT_SECRET: str
     JWT_SECRET: str

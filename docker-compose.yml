@@ -51,6 +51,26 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  worker:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: secscan_worker
+    restart: unless-stopped
+    command: python -m app.worker
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-secscan}:${POSTGRES_PASSWORD:-secscan_pass}@postgres:5432/${POSTGRES_DB:-secscan_db}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672/
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
   frontend:
     build:
       context: ./apps/frontend

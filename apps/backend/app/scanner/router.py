@@ -6,7 +6,7 @@ from app.auth.models import User
 from app.auth.service import get_current_user
 from app.scanner.models import ScanReport
 from app.scanner.schemas import ScanRequest, ScanResponse
-from app.scanner.service import run_security_scan
+from app.rabbitmq import publish_scan_task
 
 router = APIRouter(prefix="/scanner", tags=["Сканер"])
 
@@ -14,9 +14,11 @@ router = APIRouter(prefix="/scanner", tags=["Сканер"])
 async def list_repositories(user: User = Depends(get_current_user)):
     async with httpx.AsyncClient() as client:
         res = await client.get(
-            # Ссылка на GitHub API для получения репозиториев пользователя
             "https://github.com",
-            headers={"Authorization": f"Bearer {user.github_token}"},
+            headers={
+                "Authorization": f"Bearer {user.github_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
         )
     if res.status_code != 200:
         raise HTTPException(status_code=400, detail="Ошибка получения репозиториев GitHub")
@@ -32,16 +34,36 @@ async def scan_repository(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # В будущем: здесь будет публикация задачи в очередь RabbitMQ со статусом "pending"
-    found_issues = await run_security_scan(payload.repo_full_name, user.github_token)
-
     report = ScanReport(
         user_id=user.id,
         repo_full_name=payload.repo_full_name,
-        status="completed",
-        issues=found_issues,
+        status="pending",
+        issues=[],
     )
     db.add(report)
     db.commit()
     db.refresh(report)
+
+    try:
+        await publish_scan_task(report.id)
+    except Exception as exc:
+        report.status = "failed"
+        db.commit()
+        raise HTTPException(status_code=503, detail=f"Не удалось поставить задачу в очередь: {exc}")
+
+    return report
+
+@router.get("/reports/{report_id}", response_model=ScanResponse)
+async def get_scan_report(
+    report_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    report = (
+        db.query(ScanReport)
+        .filter(ScanReport.id == report_id, ScanReport.user_id == user.id)
+        .first()
+    )
+    if not report:
+        raise HTTPException(status_code=404, detail="Отчёт не найден")
     return report
