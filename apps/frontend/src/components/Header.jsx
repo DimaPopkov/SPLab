@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 
 import { ShieldIcon } from './icons.jsx';
+import { api } from '../api/client.js';
 
 export function Header({ user, onLogout }) {
   const [buttonText, setButtonText] = useState('Проверить сервер');
@@ -12,13 +13,7 @@ export function Header({ user, onLogout }) {
     setButtonText('Запрос...');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ping');
-
-      if (!response.ok) {
-        throw new Error(`Ошибка HTTP: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await api.ping();
       setButtonText(data.message || data.status || 'Сервер ответил!');
     } catch (error) {
       console.error('Ошибка при запросе к серверу:', error);

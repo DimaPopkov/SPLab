@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000/api'; // Ссылка на наш главный API
+const API_BASE = import.meta.env.VITE_API_URL || '/api'; // Ссылка на наш главный API
 
 async function request(endpoint, options = {}) {
   const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -19,6 +19,7 @@ async function request(endpoint, options = {}) {
 }
 
 export const api = {
+  ping: () => request('/ping'),
   getMe: () => request('/auth/me'),
   logout: () => request('/auth/logout', { method: 'POST' }),
   getRepos: () => request('/scanner/repos'),
