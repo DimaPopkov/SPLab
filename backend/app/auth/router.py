@@ -14,7 +14,7 @@ router = APIRouter(prefix="/auth", tags=["Авторизация"])
 def github_login():
     state = secrets.token_urlsafe(16)
     url = (
-        f"https://github.com"
+        f"https://github.com/login/oauth/authorize"
         f"?client_id={settings.GITHUB_CLIENT_ID}"
         f"&scope=repo"
         f"&state={state}"
@@ -34,10 +34,12 @@ async def github_callback(
     if not saved_state or saved_state != state:
         raise HTTPException(status_code=400, detail="Ошибка проверки CSRF state")
 
-    async with httpx.AsyncClient() as client:
-        # 1. Меняем code на access_token
+    token_url = "https://" + "github.com" + "/login/oauth/access_token"
+    user_url = "https://" + "api.github.com" + "/user"
+
+    async with httpx.AsyncClient(trust_env=False) as client:
         token_res = await client.post(
-            "https://github.com",
+            token_url,
             headers={"Accept": "application/json"},
             data={
                 "client_id": settings.GITHUB_CLIENT_ID,
@@ -50,9 +52,8 @@ async def github_callback(
         if not gh_token:
             raise HTTPException(status_code=400, detail="Не удалось получить токен GitHub")
 
-        # 2. Получаем профиль пользователя
         user_res = await client.get(
-            "https://github.com",
+            user_url,
             headers={"Authorization": f"Bearer {gh_token}"},
         )
         gh_user = user_res.json()

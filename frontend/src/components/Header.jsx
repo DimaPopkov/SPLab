@@ -60,12 +60,12 @@ export function Header({ user, onLogout }) {
           id="main-nav"
           className={`site-header__nav${isMenuOpen ? ' is-open' : ''}`}
         >
-          <NavLink to="/" end onClick={closeMenu}>
+          {/* <NavLink to="/" end onClick={closeMenu}>
             Главная
           </NavLink>
           <NavLink to="/profile" onClick={closeMenu}>
             Профиль
-          </NavLink>
+          </NavLink> */}
         </nav>
 
         <div className="site-header__actions">

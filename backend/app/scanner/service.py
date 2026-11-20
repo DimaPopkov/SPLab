@@ -11,22 +11,27 @@ SECURITY_RULES = [
     ("MEDIUM", "Отключена проверка SSL (verify=False)", r"verify\s*=\s*False"),
 ]
 
+IGNORED_FILES = ("scanner/service.py", "package-lock.json", "yarn.lock")
+
 ALLOWED_EXTENSIONS = (".py", ".js", ".jsx", ".ts", ".tsx", ".env", ".yml", ".yaml", ".json")
 
 async def run_security_scan(repo_full_name: str, gh_token: str) -> list[dict]:
     headers = {"Authorization": f"Bearer {gh_token}", "Accept": "application/vnd.github.v3+json"}
     issues = []
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    api_host = "https://" + "api." + "github.com"
+    raw_host = "https://" + "raw." + "githubusercontent.com"
+
+    async with httpx.AsyncClient(timeout=15.0, trust_env=False) as client:
         # Получаем информацию о репозитории, чтобы узнать ветку по умолчанию
-        repo_info = await client.get(f"https://github.com{repo_full_name}", headers=headers)
+        repo_info = await client.get(f"{api_host}/repos/{repo_full_name}", headers=headers)
         if repo_info.status_code != 200:
             return []
         default_branch = repo_info.json().get("default_branch", "main")
 
         # Получаем дерево всех файлов репозитория
         tree_res = await client.get(
-            f"https://github.com{repo_full_name}/git/trees/{default_branch}?recursive=1",
+            f"{api_host}/repos/{repo_full_name}/git/trees/{default_branch}?recursive=1",
             headers=headers,
         )
         if tree_res.status_code != 200:
@@ -36,10 +41,10 @@ async def run_security_scan(repo_full_name: str, gh_token: str) -> list[dict]:
             item["path"]
             for item in tree_res.json().get("tree", [])
             if item["type"] == "blob" and item["path"].endswith(ALLOWED_EXTENSIONS)
-        ][:40]  # Лимит 40 файлов для быстрой синхронной проверки (с RabbitMQ можно убрать)
+        ][:40]
 
         for file_path in files:
-            raw_url = f"https://githubusercontent.com{repo_full_name}/{default_branch}/{file_path}"
+            raw_url = f"{raw_host}/{repo_full_name}/{default_branch}/{file_path}"
             file_res = await client.get(raw_url, headers=headers)
             if file_res.status_code != 200:
                 continue

@@ -25,10 +25,13 @@ export default function Hero() {
             и проверим зависимости по шаблонам для вашего языка и фреймворка.
           </p>
           <div className="hero__actions">
-            <Link to="/profile" className="btn btn--primary btn--lg">
+            <a
+              href="http://localhost:8000/api/auth/github/login"
+              className="btn btn--primary btn--lg"
+            >
               <GitHubIcon size={18} />
               Подключить GitHub
-            </Link>
+            </a>
             <a href="#how" className="btn btn--secondary btn--lg">
               Как это работает
             </a>

@@ -114,9 +114,13 @@ code {
 .container {
   width: 100%;
   max-width: 1280px;
-  margin: 0 auto;
+  margin: 32px auto;
   padding-left: 24px;
   padding-right: 24px;
+}
+
+.card + .card {
+  margin-top: 32px;
 }
 
 .scanner-workspace {

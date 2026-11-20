@@ -12,10 +12,11 @@ router = APIRouter(prefix="/scanner", tags=["Сканер"])
 
 @router.get("/repos")
 async def list_repositories(user: User = Depends(get_current_user)):
-    async with httpx.AsyncClient() as client:
+    repos_url = "https://" + "api.github.com" + "/user/repos?sort=updated&per_page=50"
+    async with httpx.AsyncClient(trust_env=False) as client:
         res = await client.get(
             # Ссылка на GitHub API для получения репозиториев пользователя
-            "https://github.com",
+            repos_url,
             headers={"Authorization": f"Bearer {user.github_token}"},
         )
     if res.status_code != 200:
