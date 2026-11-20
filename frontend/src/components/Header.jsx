@@ -3,7 +3,7 @@ import { NavLink, Link } from 'react-router-dom';
 
 import { ShieldIcon } from './icons.jsx';
 
-export default function Header() {
+export function Header({ user, onLogout }) {
   const [buttonText, setButtonText] = useState('Проверить сервер');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -12,16 +12,13 @@ export default function Header() {
     setButtonText('Запрос...');
 
     try {
-      // Укажите ваш эндпоинт: /api/ping или /api/health
       const response = await fetch('http://127.0.0.1:8000/api/ping');
-      
+
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
 
       const data = await response.json();
-      
-      // Выводим в кнопку поле message или status из JSON-ответа FastAPI
       setButtonText(data.message || data.status || 'Сервер ответил!');
     } catch (error) {
       console.error('Ошибка при запросе к серверу:', error);
@@ -71,9 +68,24 @@ export default function Header() {
           </NavLink>
         </nav>
 
-        <button onClick={checkServer} className="btn btn--secondary btn--m" disabled={isLoading}>
-          {buttonText}
-        </button>
+        <div className="site-header__actions">
+          <button
+            onClick={checkServer}
+            className="btn btn--secondary btn--m"
+            disabled={isLoading}
+          >
+            {buttonText}
+          </button>
+
+          {user && (
+            <>
+              <span className="site-header__user">@{user.username}</span>
+              <button onClick={onLogout} className="btn btn--secondary btn--m">
+                Выйти
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

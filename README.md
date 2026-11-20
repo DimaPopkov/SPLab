@@ -7,3 +7,6 @@
 ## Backend
 ### FastAPI (Стандартный пакет)
 - pip install "fastapi[standard]"
+
+### PostgreSQL (Драйвер)
+pip install sqlalchemy "psycopg[binary]" pydantic-settings
