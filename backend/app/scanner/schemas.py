@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 class ScanRequest(BaseModel):
-    repo_full_name: str  # Формат "owner/repo"
+    repo_full_name: str
 
 class IssueItem(BaseModel):
     file: str
@@ -14,4 +14,6 @@ class ScanResponse(BaseModel):
     id: int
     repo_full_name: str
     status: str
-    issues: list[IssueItem]
+    stack: dict = {}
+    stats: dict = {}
+    issues: list[IssueItem] = []

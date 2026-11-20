@@ -37,13 +37,29 @@ function Root() {
     if (!selectedRepo) return;
     setScanning(true);
     setError('');
-    setReport(null);
     try {
-      const result = await api.scanRepo(selectedRepo);
-      setReport(result);
+      // 1. Запускаем сканирование и получаем начальный пустой отчёт с id
+      const initialReport = await api.scanRepo(selectedRepo);
+      setReport(initialReport);
+
+      // 2. Каждые 1.5 секунды запрашиваем обновлённый отчёт (по мере обработки батчей по 50 файлов)
+      const pollInterval = setInterval(async () => {
+        try {
+          const updated = await api.getReport(initialReport.id);
+          setReport(updated);
+
+          // 3. Останавливаем опрос, когда статус станет completed или failed
+          if (updated.status === 'completed' || updated.status === 'failed') {
+            clearInterval(pollInterval);
+            setScanning(false);
+          }
+        } catch {
+          clearInterval(pollInterval);
+          setScanning(false);
+        }
+      }, 1500);
     } catch (err) {
       setError(err.message);
-    } finally {
       setScanning(false);
     }
   };

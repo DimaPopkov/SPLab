@@ -22,6 +22,7 @@ export const api = {
   getMe: () => request('/auth/me'),
   logout: () => request('/auth/logout', { method: 'POST' }),
   getRepos: () => request('/scanner/repos'),
+  getReport: (reportId) => request(`/scanner/report/${reportId}`),
   scanRepo: (repoFullName) =>
     request('/scanner/scan', {
       method: 'POST',

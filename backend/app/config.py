@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_SECRET: str
     JWT_SECRET: str
     FRONTEND_URL: str = "http://localhost:5173"
+    RABBITMQ_URL: str = "amqp://guest:guest@localhost:5672/"
 
     class Config:
         env_file = ".env"

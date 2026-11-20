@@ -387,3 +387,148 @@ code {
   border: 1px solid rgba(248, 81, 73, 0.4);
   border-radius: var(--radius);
 }
+
+.report-dashboard {
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+.stack-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.text-muted-sm {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Полоса языков (в стиле GitHub) */
+.lang-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--surface-inset);
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.lang-bar__segment {
+  background: #58a6ff;
+  height: 100%;
+}
+
+.lang-bar__segment:nth-child(2) {
+  background: #3fb950;
+}
+
+.lang-bar__segment:nth-child(3) {
+  background: #d29922;
+}
+
+.lang-bar__segment:nth-child(4) {
+  background: #a371f7;
+}
+
+.lang-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.lang-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lang-item strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.lang-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #58a6ff;
+}
+
+/* Сетка статистики (4 карточки) */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.metric-box {
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-box__val {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.metric-box__lbl {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.score-good {
+  color: var(--success) !important;
+  border-color: rgba(63, 185, 80, 0.4);
+}
+
+.score-warn {
+  color: var(--warning) !important;
+  border-color: rgba(210, 153, 34, 0.4);
+}
+
+.score-bad {
+  color: var(--danger) !important;
+  border-color: rgba(248, 81, 73, 0.4);
+}
+
+.severity-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scan-clean-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--success);
+  padding: 8px 4px;
+}
+
+.dot-green {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+@media (max-width: 720px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

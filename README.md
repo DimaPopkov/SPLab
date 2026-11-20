@@ -10,3 +10,6 @@
 
 ### PostgreSQL (Драйвер)
 pip install sqlalchemy "psycopg[binary]" pydantic-settings
+
+### RabbitMQ
+pip install aio-pika
