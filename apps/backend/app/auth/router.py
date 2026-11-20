@@ -10,11 +10,15 @@ from app.auth.service import create_access_token, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
 
+GH_WEB_HOST = "https://github.com"
+GH_API_HOST = "https://api.github.com"
+
 @router.get("/github/login")
 def github_login():
     state = secrets.token_urlsafe(16)
+    auth_path = "/login/oauth/authorize"
     url = (
-        f"https://github.com"
+        f"{GH_WEB_HOST}{auth_path}"
         f"?client_id={settings.GITHUB_CLIENT_ID}"
         f"&scope=repo"
         f"&state={state}"
@@ -34,10 +38,13 @@ async def github_callback(
     if not saved_state or saved_state != state:
         raise HTTPException(status_code=400, detail="Ошибка проверки CSRF state")
 
+    token_path = "/login/oauth/access_token"
+    user_path = "/user"
+
     async with httpx.AsyncClient() as client:
         # 1. Меняем code на access_token
         token_res = await client.post(
-            "https://github.com",
+            f"{GH_WEB_HOST}{token_path}",
             headers={"Accept": "application/json"},
             data={
                 "client_id": settings.GITHUB_CLIENT_ID,
@@ -52,8 +59,11 @@ async def github_callback(
 
         # 2. Получаем профиль пользователя
         user_res = await client.get(
-            "https://github.com",
-            headers={"Authorization": f"Bearer {gh_token}"},
+            f"{GH_API_HOST}{user_path}",
+            headers={
+                "Authorization": f"Bearer {gh_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
         )
         gh_user = user_res.json()
 
