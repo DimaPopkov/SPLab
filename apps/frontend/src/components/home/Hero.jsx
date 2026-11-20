@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { GitHubIcon } from '../icons.jsx';
+import { api } from '../../api/client.js';
 
 // Пример отчёта — только для показа на главной, настоящих данных здесь нет.
 const REPORT_LINES = [
@@ -25,10 +26,10 @@ export default function Hero() {
             и проверим зависимости по шаблонам для вашего языка и фреймворка.
           </p>
           <div className="hero__actions">
-            <Link to="/profile" className="btn btn--primary btn--lg">
+            <a href={api.loginUrl} className="btn btn--primary btn--lg">
               <GitHubIcon size={18} />
               Подключить GitHub
-            </Link>
+            </a>
             <a href="#how" className="btn btn--secondary btn--lg">
               Как это работает
             </a>

@@ -1,6 +1,8 @@
 import nullAvatar from '../../assets/null_avatar.png';
 
 import { GitHubIcon } from '../icons.jsx';
+import { api } from '../../api/client.js';
+
 
 // Макет: позже эти данные будут приходить с бэкенда.
 const STATS = [
@@ -35,10 +37,10 @@ export default function UserStatsCard() {
       </h2>
       <p className="user-card__hint">Данные появятся после входа через GitHub</p>
 
-      <button type="button" className="btn btn--primary btn--block">
+      <a href={api.loginUrl} className="btn btn--primary btn--block">
         <GitHubIcon size={16} />
         Войти через GitHub
-      </button>
+      </a>
 
       <div className="user-card__section">
         <h3 className="user-card__section-title">Ваша статистика</h3>

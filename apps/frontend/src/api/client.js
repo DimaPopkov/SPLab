@@ -1,9 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api'; // Ссылка на наш главный API
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 async function request(endpoint, options = {}) {
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
-    credentials: 'include', // Обязательно для отправки HttpOnly cookie
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -28,5 +28,25 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ repo_full_name: repoFullName }),
     }),
+  getReport: (reportId) => request(`/scanner/reports/${reportId}`),
+
+  // Запускает сканирование через RabbitMQ и ждёт завершения воркером
+  async scanRepoAndWait(repoFullName, onStatusChange) {
+    let report = await this.scanRepo(repoFullName);
+    if (onStatusChange) onStatusChange(report);
+
+    while (report.status === 'pending' || report.status === 'processing') {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      report = await this.getReport(report.id);
+      if (onStatusChange) onStatusChange(report);
+    }
+
+    if (report.status === 'failed') {
+      throw new Error('Ошибка во время сканирования репозитория в воркере');
+    }
+
+    return report;
+  },
+
   loginUrl: `${API_BASE}/auth/github/login`,
 };

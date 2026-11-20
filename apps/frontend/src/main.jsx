@@ -39,7 +39,9 @@ function Root() {
     setError('');
     setReport(null);
     try {
-      const result = await api.scanRepo(selectedRepo);
+      const result = await api.scanRepoAndWait(selectedRepo, (progressReport) => {
+        setReport(progressReport);
+      });
       setReport(result);
     } catch (err) {
       setError(err.message);
