@@ -1,13 +1,27 @@
+
+const SEVERITY_PRIORITY = {
+    CRITICAL: 0,
+    HIGH: 1,
+    MEDIUM: 2,
+    LOW: 3,
+};
+
 export function ScanReport({ report }) {
   if (!report) return null;
 
   const { stack = {}, stats = {}, issues = [] } = report;
+
+  const sortedIssues = [...issues].sort(
+    (a, b) => (SEVERITY_PRIORITY[a.severity] ?? 99) - (SEVERITY_PRIORITY[b.severity] ?? 99)
+  );
+
   const languages = Object.entries(stack.languages || {});
   const frameworks = stack.frameworks || [];
 
-  const criticalCount = issues.filter((i) => i.severity === 'CRITICAL').length;
-  const highCount = issues.filter((i) => i.severity === 'HIGH').length;
-  const mediumCount = issues.filter((i) => i.severity === 'MEDIUM').length;
+  const criticalCount = sortedIssues.filter((i) => i.severity === 'CRITICAL').length;
+  const highCount = sortedIssues.filter((i) => i.severity === 'HIGH').length;
+  const mediumCount = sortedIssues.filter((i) => i.severity === 'MEDIUM').length;
+  const lowCount = sortedIssues.filter((i) => i.severity === 'LOW').length;
 
   const score = stats.security_score ?? 100;
   const scoreClass = score >= 80 ? 'score-good' : score >= 50 ? 'score-warn' : 'score-bad';
@@ -138,7 +152,7 @@ export function ScanReport({ report }) {
             </div>
           ) : (
             <div className="issue-list">
-              {issues.map((item, idx) => (
+              {sortedIssues.map((item, idx) => (
                 <div key={idx} className="issue-item">
                   <div className="issue-item__top">
                     <span className={`badge badge--${item.severity.toLowerCase()}`}>

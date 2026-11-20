@@ -7,49 +7,87 @@ from sqlalchemy.orm.attributes import flag_modified
 from app.scanner.models import ScanReport
 from app.auth.models import User
 
-BATCH_SIZE = 50
+BATCH_SIZE = 10
 
+SEVERITY_ORDER = {
+    "CRITICAL": 0,
+    "HIGH": 1,
+    "MEDIUM": 2,
+    "LOW": 3,
+}
 # Базовые правила SAST-анализатора
 SECURITY_RULES = [
-    (
+(
         "CRITICAL",
-        "Утечка приватного ключа (RSA / SSH / PGP)",
-        r"-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----",
+        "Утечка приватного ключа (RSA / SSH / EC / PGP)",
+        r"-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----",
     ),
     (
         "CRITICAL",
-        "Утечка токена GitHub / AWS / OpenAI",
-        r"(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{22,}|AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{32,})",
+        "Утечка токена GitHub / AWS / OpenAI / Stripe",
+        r"(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{22,}|AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{32,}|sk_live_[a-zA-Z0-9]{24,})",
     ),
+    (
+        "CRITICAL",
+        "Утечка токена Telegram-бота или Slack Webhook",
+        r"(\b\d{8,10}:[A-Za-z0-9_-]{35}\b|https://hooks\.slack\.com/services/T[A-Z0-9]+/B[A-Z0-9]+/[a-zA-Z0-9]+)",
+    ),
+    (
+        "CRITICAL",
+        "Строка подключения к БД с захардкоженным паролем",
+        r"(postgres|postgresql|mysql|mongodb(\+srv)?|redis)://[^:\s]+:[^@\s]{4,}@",
+    ),
+
     (
         "HIGH",
         "Хардкод пароля, секрета или API-ключа",
-        r"(?i)\b(password|passwd|secret_key|api_key|access_token)\b\s*=\s*['\"][^'\"]{6,}['\"]",
+        r"(?i)\b(password|passwd|secret_key|api_key|access_token|jwt_secret|private_key)\b\s*[:=]\s*['\"][^'\"]{6,}['\"]",
     ),
     (
         "HIGH",
-        "Удалённое выполнение кода: eval() / exec()",
-        r"(?<!\.)\b(eval|exec)\s*\(",
+        "Удалённое выполнение кода: eval() / exec() / new Function()",
+        r"((?<!\.)\b(eval|exec)\s*\(|\bnew\s+Function\s*\()",
     ),
     (
         "HIGH",
-        "Небезопасная десериализация (pickle.loads / yaml.load)",
-        r"\b(pickle\.loads|yaml\.load)\s*\(",
+        "Небезопасная десериализация (pickle.loads / marshal.loads / yaml.load)",
+        r"\b(pickle\.loads?|cPickle\.loads?|marshal\.loads?|yaml\.unsafe_load)\s*\(|\byaml\.load\s*\([^)]*\)(?!.*SafeLoader)",
     ),
     (
         "HIGH",
-        "Инъекция команд ОС (shell=True / os.system)",
-        r"(\bos\.system\s*\(|subprocess\.[a-zA-Z]+\(.*shell\s*=\s*True)",
+        "Инъекция команд ОС (shell=True / os.system / os.popen)",
+        r"(\bos\.(system|popen)\s*\(|subprocess\.[a-zA-Z]+\(.*shell\s*=\s*True)",
     ),
+    (
+        "HIGH",
+        "Потенциальный DOM-XSS (dangerouslySetInnerHTML / innerHTML)",
+        r"(dangerouslySetInnerHTML\s*=\s*\{\{|\.innerHTML\s*=)",
+    ),
+    (
+        "HIGH",
+        "Отключена проверка CSRF-токена (@csrf_exempt / CSRF_COOKIE_SECURE = False)",
+        r"(@csrf_exempt|\bCSRF_COOKIE_SECURE\s*=\s*False\b)",
+    ),
+    (
+        "HIGH",
+        "Docker-контейнер запускается от имени root (USER root)",
+        r"^\s*USER\s+root\b",
+    ),
+
     (
         "MEDIUM",
-        "Потенциальная SQL-инъекция (подстановка в SQL-строку)",
+        "Потенциальная SQL-инъекция (подстановка переменных в SQL-строку)",
         r"(?i)(f['\"]|`)\s*\b(SELECT|INSERT\s+INTO|UPDATE|DELETE\s+FROM)\b.*\{.*\}",
     ),
     (
         "MEDIUM",
-        "Отключена проверка SSL-сертификата (verify=False)",
-        r"\bverify\s*=\s*False\b",
+        "Конкатенация строк в SQL-запросе",
+        r"(?i)['\"]\s*\b(SELECT|INSERT\s+INTO|UPDATE|DELETE\s+FROM)\b[^'\"]*['\"]\s*\+",
+    ),
+    (
+        "MEDIUM",
+        "Отключена проверка SSL-сертификата (verify=False / rejectUnauthorized: false)",
+        r"(\bverify\s*=\s*False\b|rejectUnauthorized\s*:\s*false)",
     ),
     (
         "MEDIUM",
@@ -58,8 +96,49 @@ SECURITY_RULES = [
     ),
     (
         "MEDIUM",
+        "Слишком открытая политика CORS (allow_origins=['*'] / ALLOWED_HOSTS = ['*'])",
+        r"(allow_origins\s*=\s*\[\s*['\"]\*['\"]\s*\]|ALLOWED_HOSTS\s*=\s*\[\s*['\"]\*['\"]\s*\])",
+    ),
+    (
+        "MEDIUM",
         "Устаревший алгоритм хеширования (MD5 / SHA1)",
-        r"\bhashlib\.(md5|sha1)\s*\(",
+        r"(\bhashlib\.(md5|sha1)\s*\(|crypto\.createHash\(\s*['\"](md5|sha1)['\"]\s*\))",
+    ),
+    (
+        "MEDIUM",
+        "Криптографически нестойкий генератор (random вместо secrets)",
+        r"\brandom\.(random|randint|choice|randrange)\s*\(",
+    ),
+    (
+        "MEDIUM",
+        "Небезопасное создание временного файла (tempfile.mktemp)",
+        r"\btempfile\.mktemp\s*\(",
+    ),
+    (
+        "MEDIUM",
+        "Использование assert для проверки безопасности в продакшене",
+        r"^\s*assert\s+.*(user|auth|admin|permission|token|role)",
+    ),
+
+    (
+        "LOW",
+        "Перехват всех исключений без обработки (except: pass)",
+        r"except(\s+Exception)?\s*:\s*pass\b",
+    ),
+    (
+        "LOW",
+        "Небезопасный протокол HTTP в жёстко заданной ссылке (не localhost)",
+        r"http://(?!localhost|127\.0\.0\.1|0\.0\.0\.0|example\.com)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+    ),
+    (
+        "LOW",
+        "Привязка сервера ко всем сетевым интерфейсам (0.0.0.0)",
+        r"['\"]0\.0\.0\.0['\"]",
+    ),
+    (
+        "LOW",
+        "Незакрытый TODO / FIXME по безопасности",
+        r"(?i)(#|//)\s*(TODO|FIXME|HACK).*(security|auth|token|password|vuln|unsafe)",
     ),
 ]
 
@@ -74,6 +153,7 @@ def calculate_security_score(issues: list[dict]) -> int:
     counts = Counter(i["severity"] for i in issues)
     penalty = counts["CRITICAL"] * 25 + counts["HIGH"] * 12 + counts["MEDIUM"] * 5
     return max(0, 100 - penalty)
+
 def detect_frameworks(all_paths: list[str], combined_configs: str) -> list[str]:
     """Определяем фреймворки и инфраструктуру по файлам и зависимостям."""
     stack = []
@@ -217,7 +297,7 @@ async def process_scan_job(report_id: int, db: Session):
             }
             db.commit()
 
-            # 5. Сканирование батчами по 50 файлов (по 15 потоков в батче)
+            # 5. Сканирование батчами
             semaphore = asyncio.Semaphore(15)
 
             async def scan_single_file(file_path: str):
@@ -263,7 +343,12 @@ async def process_scan_job(report_id: int, db: Session):
 
                 scanned_count += len(batch)
 
-                report.issues = list(current_issues)
+                sorted_issues = sorted(
+                    current_issues,
+                    key=lambda x: (SEVERITY_ORDER.get(x["severity"], 99), x["file"], x["line"]),
+                )
+
+                report.issues = sorted_issues
                 report.stack = {
                     "languages": languages,
                     "frameworks": detect_frameworks(all_blobs, "\n".join(config_texts)),
