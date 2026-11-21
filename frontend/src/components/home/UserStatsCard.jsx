@@ -35,11 +35,6 @@ export default function UserStatsCard() {
       </h2>
       <p className="user-card__hint">Данные появятся после входа через GitHub</p>
 
-      <button type="button" className="btn btn--primary btn--block">
-        <GitHubIcon size={16} />
-        Войти через GitHub
-      </button>
-
       <div className="user-card__section">
         <h3 className="user-card__section-title">Ваша статистика</h3>
         <dl className="stats">
