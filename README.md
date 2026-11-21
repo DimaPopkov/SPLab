@@ -9,7 +9,7 @@
 - pip install "fastapi[standard]"
 
 ### PostgreSQL (Драйвер)
-pip install sqlalchemy "psycopg[binary]" pydantic-settings
+- pip install sqlalchemy "psycopg[binary]" pydantic-settings
 
 ### RabbitMQ
-pip install aio-pika
+- pip install aio-pika
