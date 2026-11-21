@@ -1,14 +1,15 @@
+/* ===== Хедер (строгий минимализм без размытия) ===== */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: var(--surface);
+  background: #0a0a0a;
   border-bottom: 1px solid var(--border);
 }
 
 .site-header__inner {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 12px 24px;
   display: flex;
@@ -19,9 +20,10 @@
 .site-header__logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 16px;
+  gap: 10px;
+  font-size: 15px;
   font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--text);
   text-decoration: none;
 }
@@ -36,8 +38,8 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: var(--radius);
-  background: var(--bg);
+  border-radius: 6px;
+  background: var(--surface-elevated);
   border: 1px solid var(--border);
   color: var(--text);
 }
@@ -50,11 +52,13 @@
 }
 
 .site-header__nav a {
-  font-size: 14px;
+  position: relative;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-muted);
   text-decoration: none;
-  transition: color 0.15s;
+  padding: 4px 0;
+  transition: color 0.12s ease;
 }
 
 .site-header__nav a:hover,
@@ -63,15 +67,30 @@
   text-decoration: none;
 }
 
+.site-header__nav a.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -14px;
+  height: 1px;
+  background: var(--text);
+}
+
 .site-header__actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .site-header__user {
-  font-size: 13px;
+  font-family: var(--mono);
+  font-size: 12px;
   color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 4px;
 }
 
 .site-header__burger {
@@ -112,5 +131,9 @@
 
   .site-header__nav.is-open {
     display: flex;
+  }
+
+  .site-header__nav a.active::after {
+    display: none;
   }
 }

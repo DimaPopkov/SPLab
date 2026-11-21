@@ -71,7 +71,17 @@ function Root() {
     setReport(null);
   };
 
-  if (loading) return <div className="container">Загрузка...</div>;
+  if (loading) return (
+    <div className="loader-screen">
+      <div className="loader-box">
+        <span className="loader-spinner" />
+        <div className="loader-text">
+          <strong>SPLAB // INIT</strong>
+          <span>Проверка сессии и подключение...</span>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>

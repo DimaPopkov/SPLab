@@ -17,7 +17,7 @@ SEVERITY_ORDER = {
 }
 # Базовые правила SAST-анализатора
 SECURITY_RULES = [
-(
+    (
         "CRITICAL",
         "Утечка приватного ключа (RSA / SSH / EC / PGP)",
         r"-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----",
@@ -34,13 +34,13 @@ SECURITY_RULES = [
     ),
     (
         "CRITICAL",
-        "Строка подключения к БД с захардкоженным паролем",
+        "Строка подключения к БД с паролем",
         r"(postgres|postgresql|mysql|mongodb(\+srv)?|redis)://[^:\s]+:[^@\s]{4,}@",
     ),
 
     (
         "HIGH",
-        "Хардкод пароля, секрета или API-ключа",
+        "Упоминание пароля, секрета или API-ключа",
         r"(?i)\b(password|passwd|secret_key|api_key|access_token|jwt_secret|private_key)\b\s*[:=]\s*['\"][^'\"]{6,}['\"]",
     ),
     (
@@ -146,7 +146,7 @@ IGNORED_FILES = ("scanner/service.py", "scanner\\service.py", "package-lock.json
 
 IGNORED_DIRS = ("node_modules/", "venv/", ".venv/", "__pycache__/", ".git/", "migrations/", "dist/", "build/")
 
-ALLOWED_EXTENSIONS = (".py", ".js", ".jsx", ".ts", ".tsx", ".env", ".yml", ".yaml", ".json")
+ALLOWED_EXTENSIONS = (".py", ".js", ".jsx", ".ts", ".tsx", ".env", ".yml", ".yaml", ".json", ".c", ".cpp", ".h", ".php")
 
 
 def calculate_security_score(issues: list[dict]) -> int:

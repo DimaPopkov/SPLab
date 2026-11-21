@@ -21,7 +21,6 @@ export function ScanReport({ report }) {
   const criticalCount = sortedIssues.filter((i) => i.severity === 'CRITICAL').length;
   const highCount = sortedIssues.filter((i) => i.severity === 'HIGH').length;
   const mediumCount = sortedIssues.filter((i) => i.severity === 'MEDIUM').length;
-  const lowCount = sortedIssues.filter((i) => i.severity === 'LOW').length;
 
   const score = stats.security_score ?? 100;
   const scoreClass = score >= 80 ? 'score-good' : score >= 50 ? 'score-warn' : 'score-bad';
@@ -47,9 +46,9 @@ export function ScanReport({ report }) {
       {/* БЛОК 1: Стек проекта */}
       <section className="card">
         <div className="card__header">
-          <h2 className="card__title">1. Стек проекта</h2>
+          <h2 className="card__title">1. Информация</h2>
           {stats.default_branch && (
-            <span className="badge">ветка: {stats.default_branch}</span>
+            <span className="badge">Ветка: {stats.default_branch}</span>
           )}
         </div>
         <div className="card__body">
@@ -101,8 +100,8 @@ export function ScanReport({ report }) {
       {/* БЛОК 2: Статистика проекта */}
       <section className="card">
         <div className="card__header">
-          <h2 className="card__title">2. Статистика репозитория</h2>
-          <span className={`badge ${scoreClass}`}>Security Score: {score}%</span>
+          <h2 className="card__title">2. Статистика репозитория и сканирования</h2>
+          <span className={`badge ${scoreClass}`}>Индекс безопасности: {score}%</span>
         </div>
         <div className="card__body">
           <div className="metrics-grid">
@@ -134,12 +133,12 @@ export function ScanReport({ report }) {
       <section className="card">
         <div className="card__header">
           <div className="card__header-left">
-            <h2 className="card__title">3. Аудит безопасности</h2>
+            <h2 className="card__title">3. Уязвимости и аудит безопасности</h2>
           </div>
           <div className="severity-summary">
-            {criticalCount > 0 && <span className="badge badge--critical">Critical: {criticalCount}</span>}
-            {highCount > 0 && <span className="badge badge--high">High: {highCount}</span>}
-            {mediumCount > 0 && <span className="badge badge--medium">Medium: {mediumCount}</span>}
+            {criticalCount > 0 && <span className="badge badge--critical">Критический: {criticalCount}</span>}
+            {highCount > 0 && <span className="badge badge--high">Высокий: {highCount}</span>}
+            {mediumCount > 0 && <span className="badge badge--medium">Средний: {mediumCount}</span>}
             <span className="badge">Всего: {issues.length}</span>
           </div>
         </div>
