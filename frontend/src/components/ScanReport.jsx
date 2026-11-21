@@ -1,14 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const SEVERITY_PRIORITY = {
-    CRITICAL: 0,
-    HIGH: 1,
-    MEDIUM: 2,
-    LOW: 3,
+  CRITICAL: 0,
+  HIGH: 1,
+  MEDIUM: 2,
+  LOW: 3,
 };
 
 export function ScanReport({ report }) {
   const [fileQuery, setFileQuery] = useState('');
+  const [selectedFilePath, setSelectedFilePath] = useState(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setSelectedFilePath(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   if (!report) return null;
 
@@ -21,6 +30,10 @@ export function ScanReport({ report }) {
   const sortedIssues = [...issues].sort(
     (a, b) => (SEVERITY_PRIORITY[a.severity] ?? 99) - (SEVERITY_PRIORITY[b.severity] ?? 99)
   );
+
+  const selectedFileIssues = selectedFilePath
+    ? sortedIssues.filter((item) => item.file === selectedFilePath)
+    : [];
 
   const languages = Object.entries(stack.languages || {});
   const frameworks = stack.frameworks || [];
@@ -178,43 +191,90 @@ export function ScanReport({ report }) {
       </section>
 
       {/* БЛОК 4: Список проверенных файлов */}
-      <section className="card">
-        <div className="card__header">
-          <h2 className="card__title">4. Проверенные файлы</h2>
-          <span className="badge">Всего: {filesList.length}</span>
-        </div>
-        <div className="card__body">
-          <input
-            type="text"
-            className="select"
-            placeholder="Фильтр по пути файла (например: settings.py или components/)..."
-            value={fileQuery}
-            onChange={(e) => setFileQuery(e.target.value)}
-            style={{ width: '100%', marginBottom: '12px' }}
-          />
+      {filesList.length > 0 && (
+        <section className="card">
+          <div className="card__header">
+            <h2 className="card__title">4. Проверенные файлы</h2>
+            <span className="badge">Всего: {filesList.length}</span>
+          </div>
+          <div className="card__body">
+            <input
+              type="text"
+              className="select"
+              placeholder="Фильтр по пути файла (например: settings.py или components/)..."
+              value={fileQuery}
+              onChange={(e) => setFileQuery(e.target.value)}
+              style={{ width: '100%', marginBottom: '12px' }}
+            />
 
-          <div className="scanned-files-list">
-            {filteredFiles.map((f, idx) => (
-              <div key={idx} className="scanned-file-row">
-                <span className="scanned-file-row__path">{f.path}</span>
-                <div className="scanned-file-row__meta">
-                  <span className="scanned-file-row__lines">{f.lines} строк</span>
-                  {f.issues > 0 ? (
-                    <span className="badge badge--critical">проблем: {f.issues}</span>
-                  ) : (
-                    <span className="badge score-good">OK</span>
-                  )}
-                </div>
+            <div className="scanned-files-list">
+              {filteredFiles.map((f, idx) => {
+                const hasIssues = f.issues > 0;
+                return (
+                  <div
+                    key={idx}
+                    className={`scanned-file-row ${hasIssues ? 'scanned-file-row--clickable' : ''}`}
+                    onClick={() => hasIssues && setSelectedFilePath(f.path)}
+                    title={hasIssues ? 'Нажмите, чтобы посмотреть найденные проблемы в файле' : undefined}
+                  >
+                    <span className="scanned-file-row__path">{f.path}</span>
+                    <div className="scanned-file-row__meta">
+                      <span className="scanned-file-row__lines">{f.lines} строк</span>
+                      {hasIssues ? (
+                        <span className="badge badge--critical">проблем: {f.issues}</span>
+                      ) : (
+                        <span className="badge score-good">OK</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Модальное окно с уязвимостями выбранного файла */}
+      {selectedFilePath && (
+        <div className="modal-backdrop" onClick={() => setSelectedFilePath(null)}>
+          <div className="modal-window card" onClick={(e) => e.stopPropagation()}>
+            <div className="card__header">
+              <div className="card__header-left">
+                <h3 className="card__title" style={{ textTransform: 'none' }}>
+                  {selectedFilePath}
+                </h3>
+                <span className="badge badge--critical">
+                  проблем: {selectedFileIssues.length}
+                </span>
               </div>
-            ))}
-            {filteredFiles.length === 0 && (
-              <p className="text-muted-sm" style={{ padding: '12px' }}>
-                Список файлов пуст или не найдено совпадений
-              </p>
-            )}
+              <button
+                type="button"
+                className="btn btn--secondary btn--m"
+                onClick={() => setSelectedFilePath(null)}
+              >
+                Закрыть
+              </button>
+            </div>
+
+            <div className="card__body modal-window__body">
+              <div className="issue-list">
+                {selectedFileIssues.map((item, idx) => (
+                  <div key={idx} className="issue-item">
+                    <div className="issue-item__top">
+                      <span className={`badge badge--${item.severity.toLowerCase()}`}>
+                        {item.severity}
+                      </span>
+                      <strong>{item.rule}</strong>
+                    </div>
+                    <div className="issue-item__path">Строка {item.line}</div>
+                    <code className="issue-item__code">{item.snippet}</code>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </section>
+      )}
     </div>
   );
 }

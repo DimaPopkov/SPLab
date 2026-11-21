@@ -692,3 +692,36 @@ code {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== Кликабельная строка и модальное окно с кодом ошибки ===== */
+.scanned-file-row--clickable {
+  cursor: pointer;
+}
+
+.scanned-file-row--clickable:hover {
+  background: var(--surface-elevated);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.modal-window {
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+}
+
+.modal-window__body {
+  overflow-y: auto;
+}
