@@ -8,6 +8,8 @@ const SEVERITY_PRIORITY = {
 };
 
 export function ScanReport({ report }) {
+  if (!report) return null;
+
   const [fileQuery, setFileQuery] = useState('');
   const [selectedFilePath, setSelectedFilePath] = useState(null);
 
@@ -19,13 +21,14 @@ export function ScanReport({ report }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  if (!report) return null;
-
   const { stack = {}, stats = {}, issues = [] } = report;
   const filesList = stats.files_list || [];
   const filteredFiles = filesList.filter((f) =>
     f.path.toLowerCase().includes(fileQuery.toLowerCase())
   );
+
+  const dependencies = stats.dependencies || [];
+  const vulnDepsCount = dependencies.filter((d) => d.vulns && d.vulns.length > 0).length;
 
   const sortedIssues = [...issues].sort(
     (a, b) => (SEVERITY_PRIORITY[a.severity] ?? 99) - (SEVERITY_PRIORITY[b.severity] ?? 99)
@@ -149,11 +152,73 @@ export function ScanReport({ report }) {
         </div>
       </section>
 
-      {/* БЛОК 3: Аудит уязвимостей */}
+      {/* БЛОК 3: Сторонние библиотеки и уязвимости (SCA / CVE) */}
+      <section className="card">
+        <div className="card__header">
+          <h2 className="card__title">3. Зависимости и уязвимости библиотек</h2>
+          <div className="severity-summary">
+            {vulnDepsCount > 0 && (
+              <span className="badge badge--critical">Уязвимых: {vulnDepsCount}</span>
+            )}
+            <span className="badge">Библиотек: {dependencies.length}</span>
+          </div>
+        </div>
+
+        <div className="card__body">
+          {dependencies.length === 0 ? (
+            <p className="text-muted-sm">
+              Файлы зависимостей (requirements.txt, package.json) в репозитории не обнаружены.
+            </p>
+          ) : (
+            <div className="scanned-files-list">
+              {dependencies.map((dep, idx) => {
+                const hasVulns = dep.vulns && dep.vulns.length > 0;
+                return (
+                  <div
+                    key={idx}
+                    className="scanned-file-row"
+                    style={{ flexDirection: 'column', alignItems: 'stretch', gap: '8px' }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <strong>{dep.name}</strong>
+                        <span className="badge">{dep.version ? `v${dep.version}` : 'версия не указана'}</span>
+                        <span className="badge">{dep.ecosystem}</span>
+                      </div>
+
+                      <div className="scanned-file-row__meta">
+                        <span className="scanned-file-row__lines">{dep.source}</span>
+                        {hasVulns ? (
+                          <span className="badge badge--critical">CVE: {dep.vulns.length}</span>
+                        ) : (
+                          <span className="badge score-good">OK</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {hasVulns && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '8px', borderLeft: '2px solid var(--danger)' }}>
+                        {dep.vulns.map((v, vIdx) => (
+                          <div key={vIdx} style={{ fontSize: '12px' }}>
+                            <strong style={{ color: 'var(--danger)' }}>{v.id}:</strong>{' '}
+                            <span style={{ color: 'var(--text-muted)' }}>{v.summary}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* БЛОК 4: Аудит уязвимостей */}
       <section className="card">
         <div className="card__header">
           <div className="card__header-left">
-            <h2 className="card__title">3. Уязвимости и аудит безопасности</h2>
+            <h2 className="card__title">4. Уязвимости и аудит безопасности</h2>
           </div>
           <div className="severity-summary">
             {criticalCount > 0 && <span className="badge badge--critical">Критический: {criticalCount}</span>}
@@ -190,11 +255,11 @@ export function ScanReport({ report }) {
         </div>
       </section>
 
-      {/* БЛОК 4: Список проверенных файлов */}
+      {/* БЛОК 5: Список проверенных файлов */}
       {filesList.length > 0 && (
         <section className="card">
           <div className="card__header">
-            <h2 className="card__title">4. Проверенные файлы</h2>
+            <h2 className="card__title">5. Проверенные файлы</h2>
             <span className="badge">Всего: {filesList.length}</span>
           </div>
           <div className="card__body">

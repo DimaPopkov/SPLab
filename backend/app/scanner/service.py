@@ -1,11 +1,15 @@
 import asyncio
 import re
-from collections import Counter
+import json
 import httpx
+from collections import Counter
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 from app.scanner.models import ScanReport
 from app.auth.models import User
+from pathlib import Path
+
+from app.scanner.deps_scanner import audit_dependencies
 
 BATCH_SIZE = 10
 
@@ -15,132 +19,18 @@ SEVERITY_ORDER = {
     "MEDIUM": 2,
     "LOW": 3,
 }
-# Базовые правила SAST-анализатора
-SECURITY_RULES = [
-    (
-        "CRITICAL",
-        "Утечка приватного ключа (RSA / SSH / EC / PGP)",
-        r"-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----",
-    ),
-    (
-        "CRITICAL",
-        "Утечка токена GitHub / AWS / OpenAI / Stripe",
-        r"(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{22,}|AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{32,}|sk_live_[a-zA-Z0-9]{24,})",
-    ),
-    (
-        "CRITICAL",
-        "Утечка токена Telegram-бота или Slack Webhook",
-        r"(\b\d{8,10}:[A-Za-z0-9_-]{35}\b|https://hooks\.slack\.com/services/T[A-Z0-9]+/B[A-Z0-9]+/[a-zA-Z0-9]+)",
-    ),
-    (
-        "CRITICAL",
-        "Строка подключения к БД с паролем",
-        r"(postgres|postgresql|mysql|mongodb(\+srv)?|redis)://[^:\s]+:[^@\s]{4,}@",
-    ),
 
-    (
-        "HIGH",
-        "Упоминание пароля, секрета или API-ключа",
-        r"(?i)\b(password|passwd|secret_key|api_key|access_token|jwt_secret|private_key)\b\s*[:=]\s*['\"][^'\"]{6,}['\"]",
-    ),
-    (
-        "HIGH",
-        "Удалённое выполнение кода: eval() / exec() / new Function()",
-        r"((?<!\.)\b(eval|exec)\s*\(|\bnew\s+Function\s*\()",
-    ),
-    (
-        "HIGH",
-        "Небезопасная десериализация (pickle.loads / marshal.loads / yaml.load)",
-        r"\b(pickle\.loads?|cPickle\.loads?|marshal\.loads?|yaml\.unsafe_load)\s*\(|\byaml\.load\s*\([^)]*\)(?!.*SafeLoader)",
-    ),
-    (
-        "HIGH",
-        "Инъекция команд ОС (shell=True / os.system / os.popen)",
-        r"(\bos\.(system|popen)\s*\(|subprocess\.[a-zA-Z]+\(.*shell\s*=\s*True)",
-    ),
-    (
-        "HIGH",
-        "Потенциальный DOM-XSS (dangerouslySetInnerHTML / innerHTML)",
-        r"(dangerouslySetInnerHTML\s*=\s*\{\{|\.innerHTML\s*=)",
-    ),
-    (
-        "HIGH",
-        "Отключена проверка CSRF-токена (@csrf_exempt / CSRF_COOKIE_SECURE = False)",
-        r"(@csrf_exempt|\bCSRF_COOKIE_SECURE\s*=\s*False\b)",
-    ),
-    (
-        "HIGH",
-        "Docker-контейнер запускается от имени root (USER root)",
-        r"^\s*USER\s+root\b",
-    ),
+RULES_PATH = Path(__file__).parent / "security_rules.json"
 
-    (
-        "MEDIUM",
-        "Потенциальная SQL-инъекция (подстановка переменных в SQL-строку)",
-        r"(?i)(f['\"]|`)\s*\b(SELECT|INSERT\s+INTO|UPDATE|DELETE\s+FROM)\b.*\{.*\}",
-    ),
-    (
-        "MEDIUM",
-        "Конкатенация строк в SQL-запросе",
-        r"(?i)['\"]\s*\b(SELECT|INSERT\s+INTO|UPDATE|DELETE\s+FROM)\b[^'\"]*['\"]\s*\+",
-    ),
-    (
-        "MEDIUM",
-        "Отключена проверка SSL-сертификата (verify=False / rejectUnauthorized: false)",
-        r"(\bverify\s*=\s*False\b|rejectUnauthorized\s*:\s*false)",
-    ),
-    (
-        "MEDIUM",
-        "Включён режим отладки (DEBUG = True)",
-        r"\bDEBUG\s*=\s*True\b",
-    ),
-    (
-        "MEDIUM",
-        "Слишком открытая политика CORS (allow_origins=['*'] / ALLOWED_HOSTS = ['*'])",
-        r"(allow_origins\s*=\s*\[\s*['\"]\*['\"]\s*\]|ALLOWED_HOSTS\s*=\s*\[\s*['\"]\*['\"]\s*\])",
-    ),
-    (
-        "MEDIUM",
-        "Устаревший алгоритм хеширования (MD5 / SHA1)",
-        r"(\bhashlib\.(md5|sha1)\s*\(|crypto\.createHash\(\s*['\"](md5|sha1)['\"]\s*\))",
-    ),
-    (
-        "MEDIUM",
-        "Криптографически нестойкий генератор (random вместо secrets)",
-        r"\brandom\.(random|randint|choice|randrange)\s*\(",
-    ),
-    (
-        "MEDIUM",
-        "Небезопасное создание временного файла (tempfile.mktemp)",
-        r"\btempfile\.mktemp\s*\(",
-    ),
-    (
-        "MEDIUM",
-        "Использование assert для проверки безопасности в продакшене",
-        r"^\s*assert\s+.*(user|auth|admin|permission|token|role)",
-    ),
+def load_security_rules() -> list[tuple[str, str, re.Pattern]]:
+    with open(RULES_PATH, "r", encoding="utf-8") as f:
+        raw_rules = json.load(f)
+    return [
+        (item["severity"], item["rule"], re.compile(item["pattern"]))
+        for item in raw_rules
+    ]
 
-    (
-        "LOW",
-        "Перехват всех исключений без обработки (except: pass)",
-        r"except(\s+Exception)?\s*:\s*pass\b",
-    ),
-    (
-        "LOW",
-        "Небезопасный протокол HTTP в жёстко заданной ссылке (не localhost)",
-        r"http://(?!localhost|127\.0\.0\.1|0\.0\.0\.0|example\.com)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
-    ),
-    (
-        "LOW",
-        "Привязка сервера ко всем сетевым интерфейсам (0.0.0.0)",
-        r"['\"]0\.0\.0\.0['\"]",
-    ),
-    (
-        "LOW",
-        "Незакрытый TODO / FIXME по безопасности",
-        r"(?i)(#|//)\s*(TODO|FIXME|HACK).*(security|auth|token|password|vuln|unsafe)",
-    ),
-]
+SECURITY_RULES = load_security_rules()
 
 IGNORED_FILES = ("scanner/service.py", "scanner\\service.py", "package-lock.json", "yarn.lock")
 
@@ -278,6 +168,7 @@ async def process_scan_job(report_id: int, db: Session):
             current_issues = []
             config_texts = []
             scanned_file_list = []
+            config_pairs = []
             total_lines = 0
             scanned_count = 0
 
@@ -340,6 +231,7 @@ async def process_scan_job(report_id: int, db: Session):
                     total_lines += lines_cnt
                     if cfg_content:
                         config_texts.append(cfg_content)
+                        config_pairs.append((f_path, cfg_content))
                     current_issues.extend(file_issues)
                     scanned_file_list.append({
                         "path": f_path,
@@ -359,6 +251,7 @@ async def process_scan_job(report_id: int, db: Session):
                     "languages": languages,
                     "frameworks": detect_frameworks(all_blobs, "\n".join(config_texts)),
                 }
+                
                 report.stats = {
                     **report.stats,
                     "scanned_files": scanned_count,
@@ -371,6 +264,21 @@ async def process_scan_job(report_id: int, db: Session):
                 flag_modified(report, "stack")
                 flag_modified(report, "stats")
                 db.commit()
+                
+
+            dependencies = await audit_dependencies(config_pairs)
+            vuln_deps_count = sum(1 for d in dependencies if d["vulns"])
+
+            base_score = calculate_security_score(current_issues)
+            final_score = max(0, base_score - vuln_deps_count * 10)
+
+            report.stats = {
+                **report.stats,
+                "security_score": final_score,
+                "dependencies": dependencies,
+                "vulnerable_deps_count": vuln_deps_count,
+            }
+            flag_modified(report, "stats")
 
             report.status = "completed"
             db.commit()

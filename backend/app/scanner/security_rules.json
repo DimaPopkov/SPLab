@@ -1,0 +1,142 @@
+[
+  {
+    "severity": "CRITICAL",
+    "rule": "Утечка приватного ключа (RSA / SSH / EC / PGP)",
+    "pattern": "-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----"
+  },
+  {
+    "severity": "CRITICAL",
+    "rule": "Утечка токена GitHub / AWS / OpenAI / Stripe / Google",
+    "pattern": "(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{22,}|AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{32,}|sk_live_[a-zA-Z0-9]{24,}|AIza[0-9A-Za-z\\-_]{35})"
+  },
+  {
+    "severity": "CRITICAL",
+    "rule": "Утечка токена Telegram-бота или Slack Webhook",
+    "pattern": "(\\b\\d{8,10}:[A-Za-z0-9_-]{35}\\b|https://hooks\\.slack\\.com/services/T[A-Z0-9]+/B[A-Z0-9]+/[a-zA-Z0-9]+)"
+  },
+  {
+    "severity": "CRITICAL",
+    "rule": "Строка подключения к БД с захардкоженным паролем",
+    "pattern": "(postgres|postgresql|mysql|mongodb(\\+srv)?|redis)://[^:\\s]+:[^@\\s]{4,}@"
+  },
+  {
+    "severity": "CRITICAL",
+    "rule": "Утечка JWT-токена в исходном коде",
+    "pattern": "eyJ[A-Za-z0-9_-]{10,}\\.eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}"
+  },
+  {
+    "severity": "HIGH",
+    "rule": "Хардкод пароля, секрета или API-ключа",
+    "pattern": "(?i)\\b(password|passwd|secret_key|api_key|access_token|jwt_secret|private_key)\\b\\s*[:=]\\s*['\"][^'\"]{6,}['\"]"
+  },
+  {
+    "severity": "HIGH",
+    "rule": "Удалённое выполнение кода: eval() / exec() / new Function()",
+    "pattern": "((?<!\\.)\\b(eval|exec)\\s*\\(|\\bnew\\s+Function\\s*\\()"
+  },
+  {
+    "severity": "HIGH",
+    "rule": "Небезопасная десериализация (pickle.loads / marshal.loads / yaml.load)",
+    "pattern": "\\b(pickle\\.loads?|cPickle\\.loads?|marshal\\.loads?|yaml\\.unsafe_load)\\s*\\(|\\byaml\\.load\\s*\\([^)]*\\)(?!.*SafeLoader)"
+  },
+  {
+    "severity": "HIGH",
+    "rule": "Инъекция команд ОС (shell=True / os.system / os.popen)",
+    "pattern": "(\\bos\\.(system|popen)\\s*\\(|subprocess\\.[a-zA-Z]+\\(.*shell\\s*=\\s*True)"
+  },
+  {
+    "severity": "HIGH",
+    "rule": "Потенциальный DOM-XSS (dangerouslySetInnerHTML / innerHTML)",
+    "pattern": "(dangerouslySetInnerHTML\\s*=\\s*\\{\\{|\\.innerHTML\\s*=)"
+  },
+  {
+    "severity": "HIGH",
+    "rule": "Отключена проверка CSRF-токена (@csrf_exempt / CSRF_COOKIE_SECURE = False)",
+    "pattern": "(@csrf_exempt|\\bCSRF_COOKIE_SECURE\\s*=\\s*False\\b)"
+  },
+  {
+    "severity": "HIGH",
+    "rule": "Docker-контейнер запускается от имени root (USER root)",
+    "pattern": "^\\s*USER\\s+root\\b"
+  },
+  {
+    "severity": "HIGH",
+    "rule": "Небезопасная распаковка архива (tarfile.extractall без фильтра)",
+    "pattern": "\\.extractall\\s*\\("
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Потенциальная SQL-инъекция (подстановка переменных в SQL-строку)",
+    "pattern": "(?i)(f['\"]|`)\\s*\\b(SELECT|INSERT\\s+INTO|UPDATE|DELETE\\s+FROM)\\b.*\\{.*\\}"
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Конкатенация строк в SQL-запросе",
+    "pattern": "(?i)['\"]\\s*\\b(SELECT|INSERT\\s+INTO|UPDATE|DELETE\\s+FROM)\\b[^'\"]*['\"]\\s*\\+"
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Отключена проверка SSL-сертификата (verify=False / rejectUnauthorized: false)",
+    "pattern": "(\\bverify\\s*=\\s*False\\b|rejectUnauthorized\\s*:\\s*false)"
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Включён режим отладки (DEBUG = True)",
+    "pattern": "\\bDEBUG\\s*=\\s*True\\b"
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Слишком открытая политика CORS (allow_origins=['*'] / ALLOWED_HOSTS = ['*'])",
+    "pattern": "(allow_origins\\s*=\\s*\\[\\s*['\"]\\*['\"]\\s*\\]|ALLOWED_HOSTS\\s*=\\s*\\[\\s*['\"]\\*['\"]\\s*\\])"
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Устаревший алгоритм хеширования (MD5 / SHA1)",
+    "pattern": "(\\bhashlib\\.(md5|sha1)\\s*\\(|crypto\\.createHash\\(\\s*['\"](md5|sha1)['\"]\\s*\\))"
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Криптографически нестойкий генератор (random вместо secrets)",
+    "pattern": "\\brandom\\.(random|randint|choice|randrange)\\s*\\("
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Небезопасное создание временного файла (tempfile.mktemp)",
+    "pattern": "\\btempfile\\.mktemp\\s*\\("
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Использование assert для проверки прав доступа",
+    "pattern": "^\\s*assert\\s+.*(user|auth|admin|permission|token|role)"
+  },
+  {
+    "severity": "MEDIUM",
+    "rule": "Слабый алгоритм шифрования (DES / RC4 / ECB-режим)",
+    "pattern": "\\b(DES|ARC4|MODE_ECB)\\b"
+  },
+  {
+    "severity": "LOW",
+    "rule": "Перехват всех исключений без обработки (except: pass)",
+    "pattern": "except(\\s+Exception)?\\s*:\\s*pass\\b"
+  },
+  {
+    "severity": "LOW",
+    "rule": "Небезопасный протокол HTTP в жёстко заданной ссылке",
+    "pattern": "http://(?!localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|example\\.com|json\\.schemastore\\.org|www\\.w3\\.org)[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+  },
+  {
+    "severity": "LOW",
+    "rule": "Привязка сервера ко всем сетевым интерфейсам (0.0.0.0)",
+    "pattern": "['\"]0\\.0\\.0\\.0['\"]"
+  },
+  {
+    "severity": "LOW",
+    "rule": "Незакрытый TODO / FIXME по безопасности",
+    "pattern": "(?i)(#|//)\\s*(TODO|FIXME|HACK).*(security|auth|token|password|vuln|unsafe)"
+  },
+  {
+    "severity": "LOW",
+    "rule": "Вывод отладочной информации в консоль (console.log / print с токеном или паролем)",
+    "pattern": "(?i)(console\\.log|print)\\s*\\(.*\\b(password|token|secret|api_key)\\b"
+  }
+]
