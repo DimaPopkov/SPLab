@@ -78,3 +78,61 @@ def get_scan_report(
     if not report:
         raise HTTPException(status_code=404, detail="Отчёт не найден")
     return report
+
+@router.get("/profile-summary")
+async def get_profile_summary(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    reports = (
+        db.query(ScanReport)
+        .filter(ScanReport.user_id == user.id)
+        .order_by(ScanReport.id.desc())
+        .limit(20)
+        .all()
+    )
+
+    history = [
+        {
+            "id": r.id,
+            "repo_full_name": r.repo_full_name,
+            "status": r.status,
+            "stack": r.stack or {},
+            "stats": r.stats or {},
+            "issues": r.issues or [],
+            "issues_count": len(r.issues or []),
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in reports
+    ]
+
+    repos_url = "https://" + "api." + "github.com" + "/user/repos?sort=updated&per_page=30"
+    popular_repos = []
+    async with httpx.AsyncClient(trust_env=False) as client:
+        res = await client.get(
+            repos_url,
+            headers={"Authorization": f"Bearer {user.github_token}"},
+        )
+        if res.status_code == 200:
+            raw_repos = res.json()
+            sorted_repos = sorted(
+                raw_repos,
+                key=lambda x: (x.get("stargazers_count", 0), x.get("updated_at", "")),
+                reverse=True,
+            )[:6]
+            popular_repos = [
+                {
+                    "id": r["id"],
+                    "full_name": r["full_name"],
+                    "description": r.get("description") or "Без описания",
+                    "language": r.get("language") or "Code",
+                    "stars": r.get("stargazers_count", 0),
+                    "private": r.get("private", False),
+                }
+                for r in sorted_repos
+            ]
+
+    return {
+        "history": history,
+        "popular_repos": popular_repos,
+    }

@@ -79,10 +79,16 @@ export function Header({ user, onLogout }) {
 
           {user && (
             <>
-              <span className="site-header__user">@{user.username}</span>
-              <button onClick={onLogout} className="btn btn--secondary btn--m">
-                Выйти
-              </button>
+              {user && (
+                <div className="site-header__actions">
+                  <Link to="/profile" className="site-header__user" title="Открыть профиль и историю отчётов">
+                    @{user.username}
+                  </Link>
+                  <button type="button" onClick={onLogout} className="btn btn--m">
+                    Выйти
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

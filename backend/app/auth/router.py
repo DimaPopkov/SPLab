@@ -11,7 +11,7 @@ from app.auth.service import create_access_token, get_current_user
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
 
 @router.get("/github/login")
-def github_login():
+def github_login(switch: bool = True):
     state = secrets.token_urlsafe(16)
     url = (
         f"https://github.com/login/oauth/authorize"
@@ -19,6 +19,9 @@ def github_login():
         f"&scope=repo"
         f"&state={state}"
     )
+    if switch:
+        url += "&prompt=select_account"
+    
     response = RedirectResponse(url)
     response.set_cookie("oauth_state", state, httponly=True, samesite="lax", max_age=600)
     return response

@@ -1,11 +1,12 @@
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
 import { api } from './api/client';
 import { Header } from './components/Header';
 import HomePage from './components/HomePage';
 import { RepoSelector } from './components/RepoSelector';
 import { ScanReport } from './components/ScanReport';
+import { ProfilePage } from './components/ProfilePage';
 import './styles/index.css';
 import './styles/header.css';
 
@@ -17,6 +18,9 @@ function Root() {
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState('');
+  const [searchParams] = useSearchParams();
+
+  const repoFromQuery = searchParams.get('repo');
 
   useEffect(() => {
     api
@@ -27,28 +31,29 @@ function Root() {
       })
       .then((repoList) => {
         setRepos(repoList);
-        if (repoList.length > 0) setSelectedRepo(repoList[0].full_name);
+        if (repoFromQuery && repoList.some((r) => r.full_name === repoFromQuery)) {
+          setSelectedRepo(repoFromQuery);
+        } else if (repoList.length > 0 && !selectedRepo) {
+          setSelectedRepo(repoList[0].full_name);
+        }
       })
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
-  }, []);
+  }, [repoFromQuery]);
 
   const handleScan = async () => {
     if (!selectedRepo) return;
     setScanning(true);
     setError('');
     try {
-      // 1. Запускаем сканирование и получаем начальный пустой отчёт с id
       const initialReport = await api.scanRepo(selectedRepo);
       setReport(initialReport);
 
-      // 2. Каждые 1.5 секунды запрашиваем обновлённый отчёт (по мере обработки батчей по 50 файлов)
       const pollInterval = setInterval(async () => {
         try {
           const updated = await api.getReport(initialReport.id);
           setReport(updated);
 
-          // 3. Останавливаем опрос, когда статус станет completed или failed
           if (updated.status === 'completed' || updated.status === 'failed') {
             clearInterval(pollInterval);
             setScanning(false);
@@ -71,37 +76,48 @@ function Root() {
     setReport(null);
   };
 
-  if (loading) return (
-    <div className="loader-screen">
-      <div className="loader-box">
-        <span className="loader-spinner" />
-        <div className="loader-text">
-          <strong>SPLAB // INIT</strong>
-          <span>Проверка сессии и подключение...</span>
+  if (loading) {
+    return (
+      <div className="loader-screen">
+        <div className="loader-box">
+          <span className="loader-spinner" />
+          <div className="loader-text">
+            <strong>SPLAB // INIT</strong>
+            <span>Проверка сессии и подключение...</span>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <>
       <Header user={user} onLogout={handleLogout} />
 
-      {!user ? (
-        <HomePage />
-      ) : (
-        <div className="container">
-          <RepoSelector
-            repos={repos}
-            selectedRepo={selectedRepo}
-            onSelect={setSelectedRepo}
-            onScan={handleScan}
-            scanning={scanning}
-          />
-          {error && <div className="error-box">{error}</div>}
-          <ScanReport report={report} />
-        </div>
-      )}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            !user ? (
+              <HomePage />
+            ) : (
+              <div className="container scanner-workspace">
+                <RepoSelector
+                  repos={repos}
+                  selectedRepo={selectedRepo}
+                  onSelect={setSelectedRepo}
+                  onScan={handleScan}
+                  scanning={scanning}
+                />
+                {error && <div className="alert-error">{error}</div>}
+                <ScanReport report={report} />
+              </div>
+            )
+          }
+        />
+
+        <Route path="/profile" element={<ProfilePage user={user} />} />
+      </Routes>
     </>
   );
 }

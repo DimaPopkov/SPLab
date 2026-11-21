@@ -137,3 +137,21 @@
     display: none;
   }
 }
+
+.site-header__user {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.site-header__user:hover {
+  background: var(--surface-elevated);
+  border-color: var(--border-hover);
+  text-decoration: none;
+}

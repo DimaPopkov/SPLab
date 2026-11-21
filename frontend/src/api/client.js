@@ -23,6 +23,7 @@ export const api = {
   logout: () => request('/auth/logout', { method: 'POST' }),
   getRepos: () => request('/scanner/repos'),
   getReport: (reportId) => request(`/scanner/report/${reportId}`),
+  getProfileSummary: () => request('/scanner/profile-summary'),
   scanRepo: (repoFullName) =>
     request('/scanner/scan', {
       method: 'POST',
