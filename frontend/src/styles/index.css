@@ -583,3 +583,52 @@ code {
     transform: rotate(360deg);
   }
 }
+
+/* ===== Блок проверенных файлов ===== */
+.scanned-files-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-inset);
+}
+
+.scanned-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.scanned-file-row:last-child {
+  border-bottom: none;
+}
+
+.scanned-file-row:hover {
+  background: var(--surface);
+}
+
+.scanned-file-row__path {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scanned-file-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.scanned-file-row__lines {
+  color: var(--text-muted);
+  font-size: 11px;
+}

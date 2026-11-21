@@ -199,7 +199,7 @@ def detect_frameworks(all_paths: list[str], combined_configs: str) -> list[str]:
 
 
 async def process_scan_job(report_id: int, db: Session):
-    """Фоновая задача сканирования с сохранением прогресса каждые 50 файлов."""
+    """Фоновая задача сканирования с сохранением прогресса каждые 10 файлов."""
     report = db.query(ScanReport).filter(ScanReport.id == report_id).first()
     if not report:
         return
@@ -277,6 +277,7 @@ async def process_scan_job(report_id: int, db: Session):
 
             current_issues = []
             config_texts = []
+            scanned_file_list = []
             total_lines = 0
             scanned_count = 0
 
@@ -306,10 +307,10 @@ async def process_scan_job(report_id: int, db: Session):
                     try:
                         file_res = await client.get(raw_url, headers=headers)
                     except httpx.RequestError:
-                        return 0, None, []
+                        return file_path, 0, None, []
 
                     if file_res.status_code != 200:
-                        return 0, None, []
+                        return file_path, 0, None, []
 
                     text = file_res.text
                     lines = text.splitlines()
@@ -329,17 +330,22 @@ async def process_scan_job(report_id: int, db: Session):
                                     "rule": rule_name,
                                     "snippet": stripped[:120],
                                 })
-                    return len(lines), cfg, file_issues
+                    return file_path, len(lines), cfg, file_issues
 
             for i in range(0, len(files), BATCH_SIZE):
                 batch = files[i : i + BATCH_SIZE]
                 batch_results = await asyncio.gather(*(scan_single_file(fp) for fp in batch))
 
-                for lines_cnt, cfg_content, file_issues in batch_results:
+                for f_path, lines_cnt, cfg_content, file_issues in batch_results:
                     total_lines += lines_cnt
                     if cfg_content:
                         config_texts.append(cfg_content)
                     current_issues.extend(file_issues)
+                    scanned_file_list.append({
+                        "path": f_path,
+                        "lines": lines_cnt,
+                        "issues": len(file_issues),
+                    })
 
                 scanned_count += len(batch)
 
@@ -358,6 +364,7 @@ async def process_scan_job(report_id: int, db: Session):
                     "scanned_files": scanned_count,
                     "total_lines": total_lines,
                     "security_score": calculate_security_score(current_issues),
+                    "files_list": list(scanned_file_list),
                 }
 
                 flag_modified(report, "issues")

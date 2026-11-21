@@ -1,3 +1,4 @@
+import { useState } from 'react';
 
 const SEVERITY_PRIORITY = {
     CRITICAL: 0,
@@ -7,9 +8,15 @@ const SEVERITY_PRIORITY = {
 };
 
 export function ScanReport({ report }) {
+  const [fileQuery, setFileQuery] = useState('');
+
   if (!report) return null;
 
   const { stack = {}, stats = {}, issues = [] } = report;
+  const filesList = stats.files_list || [];
+  const filteredFiles = filesList.filter((f) =>
+    f.path.toLowerCase().includes(fileQuery.toLowerCase())
+  );
 
   const sortedIssues = [...issues].sort(
     (a, b) => (SEVERITY_PRIORITY[a.severity] ?? 99) - (SEVERITY_PRIORITY[b.severity] ?? 99)
@@ -167,6 +174,45 @@ export function ScanReport({ report }) {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* БЛОК 4: Список проверенных файлов */}
+      <section className="card">
+        <div className="card__header">
+          <h2 className="card__title">4. Проверенные файлы</h2>
+          <span className="badge">Всего: {filesList.length}</span>
+        </div>
+        <div className="card__body">
+          <input
+            type="text"
+            className="select"
+            placeholder="Фильтр по пути файла (например: settings.py или components/)..."
+            value={fileQuery}
+            onChange={(e) => setFileQuery(e.target.value)}
+            style={{ width: '100%', marginBottom: '12px' }}
+          />
+
+          <div className="scanned-files-list">
+            {filteredFiles.map((f, idx) => (
+              <div key={idx} className="scanned-file-row">
+                <span className="scanned-file-row__path">{f.path}</span>
+                <div className="scanned-file-row__meta">
+                  <span className="scanned-file-row__lines">{f.lines} строк</span>
+                  {f.issues > 0 ? (
+                    <span className="badge badge--critical">проблем: {f.issues}</span>
+                  ) : (
+                    <span className="badge score-good">OK</span>
+                  )}
+                </div>
+              </div>
+            ))}
+            {filteredFiles.length === 0 && (
+              <p className="text-muted-sm" style={{ padding: '12px' }}>
+                Список файлов пуст или не найдено совпадений
+              </p>
+            )}
+          </div>
         </div>
       </section>
     </div>
