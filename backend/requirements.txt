@@ -7,3 +7,4 @@ psycopg2-binary
 pydantic-settings
 npm==0.1.1
 psycopg[binary]
+PyJWT
