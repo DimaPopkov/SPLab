@@ -1,0 +1,8 @@
+fastapi==0.165.0
+fastapi-cli==0.0.34
+fastapi-cloud-cli==0.28.0
+uvicorn==0.54.0
+sqlalchemy
+psycopg2-binary
+pydantic-settings
+npm==0.1.1
