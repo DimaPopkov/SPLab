@@ -106,10 +106,10 @@
   padding-bottom: 48px;
 }
 
-.home-layout__main {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.home-layout__main,
+.card {
+  min-width: 0;
+  max-width: 100%;
 }
 
 #how {
@@ -308,8 +308,10 @@
 
 /* ===== Таблица «язык — фреймворк» ===== */
 .table-wrap {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
-  margin-top: 12px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .model-table {
