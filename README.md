@@ -13,3 +13,6 @@
 
 ### RabbitMQ
 - pip install aio-pika
+
+### Supabase
+npm install @supabase/server
