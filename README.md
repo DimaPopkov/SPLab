@@ -16,3 +16,5 @@
 
 ### Supabase
 npm install @supabase/server
+
+psycopg[binary]
