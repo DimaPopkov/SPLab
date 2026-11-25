@@ -23,7 +23,7 @@ def github_login(switch: bool = True):
         url += "&prompt=select_account"
     
     response = RedirectResponse(url)
-    response.set_cookie("oauth_state", state, httponly=True, samesite="lax", max_age=600)
+    response.set_cookie("oauth_state", state, httponly=True, samesite="none", max_age=600)
     return response
 
 @router.get("/github/callback")
