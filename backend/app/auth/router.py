@@ -12,19 +12,15 @@ from urllib.parse import quote
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
 
 @router.get("/github/login")
-def github_login(switch: bool = True):
+def github_login():
     state = secrets.token_urlsafe(16)
     url = (
-        f"https://github.com/login/oauth/authorize"
+        "https://github.com/login/oauth/authorize"
         f"?client_id={settings.GITHUB_CLIENT_ID.strip()}"
-        f"&scope=repo"
+        "&scope=repo"
         f"&state={state}"
     )
-    if switch:
-        url = f"https://github.com{quote(url, safe='')}"
-    else:
-        url = url
-    
+
     response = RedirectResponse(url)
     response.set_cookie(
         "oauth_state",
@@ -34,6 +30,7 @@ def github_login(switch: bool = True):
         secure=True,
         max_age=600,
     )
+    
     return response
 
 @router.get("/github/callback")
