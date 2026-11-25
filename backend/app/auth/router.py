@@ -86,8 +86,8 @@ async def github_callback(
         key="access_token",
         value=jwt_token,
         httponly=True,
-        samesite="lax",
-        secure=False,  # Поставить True при переходе на HTTPS
+        samesite="none",
+        secure=True,
         max_age=7 * 24 * 3600,
     )
     return response
