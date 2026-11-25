@@ -26,7 +26,7 @@ export default function Hero() {
           </p>
           <div className="hero__actions">
             <a
-              href="http://localhost:8000/api/auth/github/login"
+              href="https://splab.onrender.com/api/auth/github/login"
               className="btn btn--primary btn--lg"
             >
               <GitHubIcon size={18} />
