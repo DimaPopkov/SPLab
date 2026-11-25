@@ -7,6 +7,7 @@ from app.config import settings
 from app.database import get_db
 from app.auth.models import User
 from app.auth.service import create_access_token, get_current_user
+from urllib.parse import quote
 
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
 
@@ -20,7 +21,9 @@ def github_login(switch: bool = True):
         f"&state={state}"
     )
     if switch:
-        url += "&prompt=select_account"
+        url = f"https://github.com{quote(url, safe='')}"
+    else:
+        url = url
     
     response = RedirectResponse(url)
     response.set_cookie(
