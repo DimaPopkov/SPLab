@@ -12,7 +12,7 @@ export function Header({ user, onLogout }) {
     setButtonText('Запрос...');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ping');
+      const response = await fetch('https://splab.onrender.com/api/ping');
 
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
