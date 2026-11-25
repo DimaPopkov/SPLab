@@ -16,7 +16,7 @@ def github_login(switch: bool = True):
     state = secrets.token_urlsafe(16)
     url = (
         f"https://github.com/login/oauth/authorize"
-        f"?client_id={settings.GITHUB_CLIENT_ID}"
+        f"?client_id={settings.GITHUB_CLIENT_ID.strip()}"
         f"&scope=repo"
         f"&state={state}"
     )
