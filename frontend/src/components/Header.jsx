@@ -30,7 +30,6 @@ export function Header({ user, onLogout }) {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
@@ -42,19 +41,6 @@ export function Header({ user, onLogout }) {
           </span>
           SPLab
         </Link>
-
-        <button
-          type="button"
-          className="site-header__burger"
-          aria-label="Открыть меню"
-          aria-expanded={isMenuOpen}
-          aria-controls="main-nav"
-          onClick={toggleMenu}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
 
         <nav
           id="main-nav"
