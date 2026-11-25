@@ -97,6 +97,7 @@ async def github_callback(
         secure=True,
         max_age=7 * 24 * 3600,
     )
+    
     return response
 
 @router.get("/me")
