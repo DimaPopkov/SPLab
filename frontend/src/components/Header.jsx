@@ -55,14 +55,6 @@ export function Header({ user, onLogout }) {
         </nav>
 
         <div className="site-header__actions">
-          <button
-            onClick={checkServer}
-            className="btn btn--secondary btn--m"
-            disabled={isLoading}
-          >
-            {buttonText}
-          </button>
-
           {user && (
             <>
               {user && (
