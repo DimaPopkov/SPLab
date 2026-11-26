@@ -12,7 +12,7 @@ from app.scanner import models as scanner_models
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="SecScan API")
+app = FastAPI(title="SPLab API")
 
 app.add_middleware(
     CORSMiddleware,

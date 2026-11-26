@@ -47,7 +47,7 @@ async def github_callback(
     token_url = "https://" + "github.com" + "/login/oauth/access_token"
     user_url = "https://" + "api.github.com" + "/user"
 
-    async with httpx.AsyncClient(trust_env=False) as client:
+    async with httpx.AsyncClient(trust_env=False, timeout=10.0) as client:
         token_res = await client.post(
             token_url,
             headers={"Accept": "application/json"},
