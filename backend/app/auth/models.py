@@ -4,7 +4,7 @@ from sqlalchemy.types import TypeDecorator
 from app.database import Base
 from app.config import settings
 
-fernet = Fernet(settings.TOKEN_ENCRYPTION_KEY.encode())
+fernet = Fernet(settings.TOKEN_ENCRYPTION_KEY.strip().encode())
 
 class EncryptedString(TypeDecorator):
     """Автоматически шифрует строку при записи в БД и расшифровывает при чтении."""
