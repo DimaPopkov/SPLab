@@ -15,6 +15,7 @@
 - pip install aio-pika
 
 ### Supabase
-npm install @supabase/server
+- npm install @supabase/server
 
-psycopg[binary]
+### Дополнительно
+- psycopg[binary]
